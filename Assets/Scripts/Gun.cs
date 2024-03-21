@@ -50,7 +50,7 @@ public class Gun : MonoBehaviour
         Debug.Log("Bang");
         Instantiate(bulletPrefab, gunBarrelEnd.transform.position, gunBarrelEnd.rotation);
         anim.SetTrigger("shoot");
-        timeBetweenShots = 0;
+        elapsed = 0;
         ammo -= 1;
         AmmoChange?.Invoke(maxAmmo, ammo);
 
@@ -59,7 +59,14 @@ public class Gun : MonoBehaviour
 
     public void AddAmmo(int amount)
     {
-        ammo += amount;
+        if (amount >= maxAmmo-ammo)
+        {
+            ammo = maxAmmo;
+        }
+        else
+        {
+            ammo += amount;
+        }
         AmmoChange?.Invoke(maxAmmo, ammo);
     }
 }

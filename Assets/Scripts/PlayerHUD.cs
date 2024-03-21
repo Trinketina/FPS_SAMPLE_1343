@@ -23,4 +23,9 @@ public class PlayerHUD : MonoBehaviour
         maxAmmoText.text = maxAmmo.ToString();
         currentAmmoText.text = ammo.ToString();
     }
+
+    public void SetHealth(float maxHealth, float health)
+    {
+        healthBar.fillAmount = health/maxHealth;
+    }
 }

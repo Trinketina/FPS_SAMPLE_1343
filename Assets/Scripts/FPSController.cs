@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class FPSController : MonoBehaviour
 {
@@ -16,8 +17,10 @@ public class FPSController : MonoBehaviour
     [SerializeField] float lookSensitivityY = 1.0f;
     [SerializeField] float gravity = -9.81f;
     [SerializeField] float jumpForce = 10;
-    
+    [SerializeField] float maxHealth = 20;
+
     // private variables
+    float health;
     Vector3 velocity;
     bool grounded;
     float xRotation;
@@ -27,7 +30,11 @@ public class FPSController : MonoBehaviour
 
     // properties
     public GameObject Cam { get { return cam; } }
-    
+
+    //Event Handlers
+    public UnityAction PlayerInteract;
+    [SerializeField] UnityEvent OnShoot;
+    [SerializeField] UnityEvent<float, float> HealthChange;
 
     private void Awake()
     {
@@ -42,20 +49,35 @@ public class FPSController : MonoBehaviour
 
         // start with a gun
         AddGun(initialGun);
+
+        health = maxHealth;
+        HealthChange.Invoke(maxHealth, health);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Movement();
-        Look();
+        if (health > 0)
+        {
+            Movement();
+            Look();
 
-        FireGun();
+            FireGun();
 
+            Interact(); //runs interaction event
+        }
         // always go back to "no velocity"
         // "velocity" is for movement speed that we gain in addition to our movement (falling, knockback, etc.)
         Vector3 noVelocity = new Vector3(0, velocity.y, 0);
         velocity = Vector3.Lerp(velocity, noVelocity, 5 * Time.deltaTime);
+    }
+    void Interact()
+    {
+        if (Input.GetButtonDown("Interact"))
+        {
+            Debug.Log("interacting");
+            PlayerInteract?.Invoke();
+        }
     }
 
     void Movement()
@@ -97,9 +119,12 @@ public class FPSController : MonoBehaviour
 
     void FireGun()
     {
-        if(GetPressFire())
+        if(GetPressFire() && currentGun!= null)
         {
-            currentGun?.AttemptFire();
+            if (currentGun.AttemptFire())
+            {
+                OnShoot.Invoke();
+            }
         }
     }
 
@@ -170,6 +195,14 @@ public class FPSController : MonoBehaviour
             var collisionPoint = hit.collider.ClosestPoint(transform.position);
             var knockbackAngle = (transform.position - collisionPoint).normalized;
             velocity = (20 * knockbackAngle);
+
+            float dam = hit.gameObject.GetComponent<Damager>().damage;
+            if (health - dam <= 0 && health != .1f)
+                health = .1f;
+            else 
+                health -= dam;
+            HealthChange.Invoke(maxHealth, health);
+            Debug.Log("Health: " + health);
         }
     }
 }
