@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Gun : MonoBehaviour
 {
@@ -17,10 +18,14 @@ public class Gun : MonoBehaviour
     int ammo;
     float elapsed = 0;
 
+    //Event Handler
+    [SerializeField] UnityEvent<int,int> AmmoChange;
+
     // Start is called before the first frame update
     void Start()
     {
         ammo = maxAmmo;
+        AmmoChange?.Invoke(maxAmmo,ammo);
     }
 
     // Update is called once per frame
@@ -41,11 +46,13 @@ public class Gun : MonoBehaviour
             return false;
         }
 
+
         Debug.Log("Bang");
         Instantiate(bulletPrefab, gunBarrelEnd.transform.position, gunBarrelEnd.rotation);
         anim.SetTrigger("shoot");
         timeBetweenShots = 0;
         ammo -= 1;
+        AmmoChange?.Invoke(maxAmmo, ammo);
 
         return true;
     }
@@ -53,5 +60,6 @@ public class Gun : MonoBehaviour
     public void AddAmmo(int amount)
     {
         ammo += amount;
+        AmmoChange?.Invoke(maxAmmo, ammo);
     }
 }

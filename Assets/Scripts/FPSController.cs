@@ -64,7 +64,7 @@ public class FPSController : MonoBehaviour
 
         if(grounded && velocity.y < 0)
         {
-            velocity.y = -0.5f;
+            velocity.y = -1f;
         }
 
         Vector2 movement = GetPlayerMovementVector();
